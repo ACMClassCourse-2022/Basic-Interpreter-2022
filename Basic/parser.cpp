@@ -53,18 +53,33 @@ Expression *readE(TokenScanner &scanner, int prec) {
  * This function scans a term, which is either an integer, an identifier,
  * or a parenthesized subexpression.
  */
-
 Expression *readT(TokenScanner &scanner) {
     std::string token = scanner.nextToken();
     TokenType type = scanner.getTokenType(token);
     if (type == WORD) return new IdentifierExp(token);
-    if (type == NUMBER) return new ConstantExp(stringToInteger(token));
-    if (token != "(") error("Illegal term in expression");
-    Expression *exp = readE(scanner);
-    if (scanner.nextToken() != ")") {
-        error("Unbalanced parentheses in expression");
+    else if (type == NUMBER) return new ConstantExp(stringToInteger(token));
+    else if (type == OPERATOR) {
+        if (token == "-") {
+            token = scanner.nextToken();
+            type = scanner.getTokenType(token);
+            if (type != NUMBER)error("Illegal term in expression");
+            return new ConstantExp((-1)*stringToInteger(token));
+        } else if (token == "+") {
+            token = scanner.nextToken();
+            type = scanner.getTokenType(token);
+            if (type != NUMBER) error("Illegal term in expression");
+            return new ConstantExp(stringToInteger(token));
+        } else if (token == "(") {
+            Expression *exp = readE(scanner);
+            if (scanner.nextToken() != ")") error("Unbalanced parentheses in expression");
+            return exp;
+        } else {
+            error("Illegal term in expression");
+        }
+    } else {
+        error("Illegal term in expression");
     }
-    return exp;
+    return nullptr;
 }
 
 /*
